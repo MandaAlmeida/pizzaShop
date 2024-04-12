@@ -5,7 +5,9 @@ import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { singIn } from "@/api/signIn";
 
 const signInForm = z.object({
   email: z.string().email(),
@@ -14,10 +16,20 @@ const signInForm = z.object({
 type SignInForm = z.infer<typeof signInForm>;
 
 export function SignIn() {
-  const { register, handleSubmit } = useForm<SignInForm>();
+  const [searchParams] = useSearchParams();
+
+  const { register, handleSubmit } = useForm<SignInForm>({
+    defaultValues: { email: searchParams.get("email") ?? "" },
+  });
+
+  const { mutateAsync: authenticate } = useMutation({
+    mutationFn: singIn,
+  });
 
   async function handleSighIn(data: SignInForm) {
     try {
+      await authenticate({ email: data.email });
+
       toast.success("Enviamos um link de autentificação para seu email.", {
         action: {
           label: "Reenviar",
