@@ -35,7 +35,7 @@ export function AccountMenu() {
   const { mutateAsync: signOutFn, isPending: isSigningOut } = useMutation({
     mutationFn: signOut,
     onSuccess: () => {
-      navigation("/sing-in", { replace: true });
+      navigation("/sign-in", { replace: true });
     },
   });
 
