@@ -11,12 +11,29 @@ import { OrderTableFilter } from "./orderTableFilter";
 import { Pagination } from "@/components/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { getOrders } from "@/api/getOrders";
+import { useSearchParams } from "react-router-dom";
+import { z } from "zod";
 
 export function Orders() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const pageIndex = z.coerce
+    .number()
+    .transform((page) => page - 1)
+    .parse(searchParams.get("page") ?? "1");
+
   const { data: result } = useQuery({
     queryKey: ["orders"],
-    queryFn: getOrders,
+    queryFn: () => getOrders({ pageIndex }),
   });
+
+  function handlePaginate(pageIndex: number) {
+    setSearchParams((state) => {
+      state.set("page", (pageIndex + 1).toString());
+      return state;
+    });
+  }
+
   return (
     <>
       <Helmet title="Pedidos" />
@@ -45,7 +62,14 @@ export function Orders() {
               </TableBody>
             </Table>
           </div>
-          <Pagination pageIndex={0} totalCount={105} perPage={10} />
+          {result && (
+            <Pagination
+              onPageChange={handlePaginate}
+              pageIndex={pageIndex}
+              totalCount={result.meta.totalCount}
+              perPage={result.meta.perPage}
+            />
+          )}
         </div>
       </div>
     </>
